@@ -26,6 +26,7 @@ it('по адресу /about должна открываться страниц�
 
 it("если добавить элемент, он появляется в списке", async () => {
   const store = initStore();
+
   const application = (
     <BrowserRouter>
       <Provider store={store}>
