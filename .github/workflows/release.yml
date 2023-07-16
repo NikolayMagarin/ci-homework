@@ -71,6 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
+      - uses: actions/checkout@v3
       - name: Generate changelog
         id: changelog
         uses: metcalfc/changelog-generator@v4.1.0
