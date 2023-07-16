@@ -20,5 +20,26 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
+      
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - run: npm run test-ci
+      - run: npm run e2e
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: unit-test-report
+          path: test-report.html
+          retention-days: 30
+          
       - run: npm run test-ci
       - run: npm run e2e
