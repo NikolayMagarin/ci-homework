@@ -53,24 +53,26 @@ jobs:
 
   create-release:
     needs: deploy
-    name: release
-    uses: actions/create-release@v1
-    id: create_release
-    with:
-      draft: false
-      prerelease: false
-      release_name: Release ${{ github.ref_name }}
-      tag_name: ${{ github.ref }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   changelog:
     needs: test
-    name: Generate changelog
-    id: changelog
-    uses: metcalfc/changelog-generator@v4.1.0
-    with:
-      myToken: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v4.1.0
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
 
   create-release-issue:
     needs: changelog
