@@ -1,0 +1,107 @@
+name: Release
+run-name: ${{ github.actor }} creating new release
+on:
+  push:
+    tags:
+      - 'v\d+'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - run: npm run test-ci
+      - run: npm run e2e
+
+      - uses: actions/upload-artifact@v3
+        id: playwright-test-report
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v3
+        id: unit-test-report
+        if: always()
+        with:
+          name: unit-test-report
+          path: test-report.html
+          retention-days: 30
+
+      - run: npm run build
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: github-pages
+          path: build/
+          retention-days: 30
+
+  create-release:
+    needs: deploy
+    name: release
+    uses: actions/create-release@v1
+    id: create_release
+    with:
+      draft: false
+      prerelease: false
+      release_name: Release ${{ github.ref_name }}
+      tag_name: ${{ github.ref }}
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  changelog:
+    needs: test
+    name: Generate changelog
+    id: changelog
+    uses: metcalfc/changelog-generator@v4.1.0
+    with:
+      myToken: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release-issue:
+    needs: changelog
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.ref_name }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+          URL: ${{ steps.deployment.outputs.page_url }}
+          REPORT1: ${{ steps.unit-test-report.output.value }}
+          REPORT2: ${{ steps.playwright-test-report.output.value }}
+        with:
+          filename: .github/release-template.md
+          update_existing: true
+          search_existing: all
+
+  deploy:
+    needs: changelog
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
