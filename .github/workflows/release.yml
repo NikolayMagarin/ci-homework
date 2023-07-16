@@ -97,8 +97,6 @@ jobs:
           search_existing: all
 
   deploy:
-    runs-on: ubuntu-latest
-
     needs: changelog
 
     permissions:
