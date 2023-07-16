@@ -43,6 +43,10 @@ jobs:
           retention-days: 30
 
   release:
+    needs: test
+
+    permissions: write-all
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
