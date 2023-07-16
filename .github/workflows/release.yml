@@ -8,7 +8,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js 18.x
@@ -17,9 +18,9 @@ jobs:
           node-version: 18.x
       - run: |
           npm ci
-           npx playwright install --with-deps
-           npm run test-ci
-           npm run e2e
+          npx playwright install --with-deps
+          npm run test-ci
+          npm run e2e
 
       - uses: actions/upload-artifact@v3
         id: playwright-test-report
@@ -36,11 +37,10 @@ jobs:
           retention-days: 30
 
       - run: npm run build
-      - uses: actions/upload-artifact@v3
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          name: github-pages
-          path: build/
-          retention-days: 30
+          folder: build
 
   release:
     needs: test
@@ -73,7 +73,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.ref_name }}
           CHANGELOG: ${{ steps.changelog.outputs.changelog }}
-          URL: ${{ steps.deployment.outputs.page_url }}
+          URL: https://nikolaymagarin.github.io/ci-homework/
           REPORT1: ${{ steps.unit-test-report.output.value }}
           REPORT2: ${{ steps.playwright-test-report.output.value }}
         with:
@@ -94,22 +94,3 @@ jobs:
           filename: .github/release-template.md
           update_existing: true
           search_existing: all
-
-  deploy:
-    needs:
-      - test
-      - release
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
