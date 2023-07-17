@@ -1,32 +1,24 @@
-В этом репозитории находится пример приложения с тестами:
+Проверка коммитов на соответствие формату conventional commits производится локально у разработчика, вносящего изменения.
 
-- [e2e тесты](e2e/example.spec.ts)
-- [unit тесты](src/example.test.tsx)
+## Workflows
 
-Для запуска примеров необходимо установить [NodeJS](https://nodejs.org/en/download/) 16 или выше.
+### [`pr-checks.yml`](https://github.com/NikolayMagarin/ci-homework/blob/master/.github/workflows/pr-checks.yml)
 
-Как запустить:
+- Запускает тесты на pull request
+- Выполняет установку пакетов `npm ci`
+- Прогоняет unit тесты `npm run test-ci` и сохранят результат (html) в артефакты
+- Прогоняет e2e тесты `npm run e2e` и сохранят результат (html) в артефакты
 
-```sh
-# установить зависимости
-npm ci
+### [`release.yml`](https://github.com/NikolayMagarin/ci-homework/blob/master/.github/workflows/release.yml)
 
-# запустить приложение
-npm start
-```
+- Запускается на push с тегом `v<число>` (например, `v12`)
+- Выполняет установку пакетов `npm ci`
+- Прогоняет unit тесты `npm run test-ci` и сохранят результат (html) в артефакты
+- Прогоняет e2e тесты `npm run e2e` и сохранят результат (html) в артефакты
+- Выполняет сборку приложения `npm run build`
+- Выполняет деплой приложения на github pages
+- Создаёт issue с автором и датой релиза, номером версии и changelog
 
-Как запустить e2e тесты:
+---
 
-```sh
-# скачать браузеры
-npx playwright install
-
-# запустить тесты
-npm run e2e
-```
-
-Как запустить модульные тесты:
-
-```sh
-npm test
-```
+telegram: [@NikolayMagarin](https://t.me/NikolayMagarin)
